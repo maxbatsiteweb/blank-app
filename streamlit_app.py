@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import re
 
 # Configuration de l'application
@@ -69,7 +68,7 @@ for i, col in enumerate([col1, col2, col3]):
                     # Ajout des résultats dans un dictionnaire pour calculer les graphiques globaux
                     inputs[categories[i]] = performance_index
 
-                    # Jauge verticale
+                    # Jauge horizontale individuelle
                     st.progress(int(performance_index))
                 else:
                     st.warning("Veuillez entrer une distance supérieure à 0.")
@@ -80,19 +79,17 @@ for i, col in enumerate([col1, col2, col3]):
             st.write("Veuillez remplir tous les champs pour voir les résultats.")
             inputs[categories[i]] = 0
 
-# Graphique Camembert (anneau)
+# Jauge finale globale
 if all(value > 0 for value in inputs.values()):
     total = sum(inputs.values())
     normalized_scores = [score / total * 100 for score in inputs.values()]
     
-    # Création du graphique
-    fig, ax = plt.subplots()
-    wedges, texts, autotexts = ax.pie(
-        normalized_scores, 
-        labels=categories, 
-        autopct='%1.1f%%', 
-        startangle=90, 
-        wedgeprops=dict(width=0.3)
-    )
-    ax.set_aspect('equal')
-    st.pyplot(fig)
+    # Affichage des valeurs par catégorie et jauge globale
+    st.subheader("Répartition des performances")
+    for category, score in zip(categories, normalized_scores):
+        st.write(f"{category} : {round(score, 2)}%")
+    
+    # Création de la jauge finale sous forme de barre horizontale
+    final_score = total / (len(inputs) * 100) * 100  # Moyenne des indices de performance
+    st.subheader("Performance globale")
+    st.progress(int(final_score))
