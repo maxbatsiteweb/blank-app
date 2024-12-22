@@ -59,7 +59,7 @@ for i, col in enumerate([col1, col2, col3]):
                 time_seconds = pace_to_seconds(time)  # Convertit le temps en secondes
                 if distance > 0:
                     real_pace = round(time_seconds / distance)  # Allure réelle
-                    performance_index = calculate_performance_index(real_pace, REFERENCE_PACE)  # Calcul indice de performance
+                    performance_index = calculate_performance_index(real_pace, pace_to_seconds(REFERENCE_PACE))  # Calcul indice de performance
 
                     # Affichage des résultats
                     st.write(f"Allure réelle : {seconds_to_pace(real_pace)} / km")
@@ -92,20 +92,19 @@ if all(value > 0 for value in inputs.values()):
 
     # Création de la jauge finale
     st.subheader("Performance globale (Jauge colorée)")
-    fig, ax = plt.subplots(figsize=(8, 1))
+    fig, ax = plt.subplots(figsize=(8, 0.5))  # Rendre la jauge plus fine
 
     # Définir les couleurs et les segments
     colors = ['#4CAF50', '#2196F3', '#FFC107']  # Vert, Bleu, Jaune
     left = 0
     for score, color in zip(normalized_scores, colors):
-        ax.barh(0, score, height=0.5, color=color, left=left)
+        ax.barh(0, score, height=0.3, color=color, left=left)  # Ajuster la hauteur pour la rendre plus fine
         left += score
 
-    # Ajustements visuels
+    # Ajustements visuels pour enlever les axes
     ax.set_xlim(0, 100)
-    ax.set_yticks([])
-    ax.set_xticks([0, 25, 50, 75, 100])
-    ax.set_xticklabels(['0%', '25%', '50%', '75%', '100%'])
+    ax.set_yticks([])  # Supprimer les ticks sur l'axe Y
+    ax.set_xticks([])  # Supprimer les ticks sur l'axe X
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['left'].set_visible(False)
