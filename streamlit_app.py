@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 import re
 
 # Configuration de l'application
@@ -84,12 +85,31 @@ if all(value > 0 for value in inputs.values()):
     total = sum(inputs.values())
     normalized_scores = [score / total * 100 for score in inputs.values()]
     
-    # Affichage des valeurs par catégorie et jauge globale
+    # Affichage des valeurs par catégorie
     st.subheader("Répartition des performances")
     for category, score in zip(categories, normalized_scores):
         st.write(f"{category} : {round(score, 2)}%")
-    
-    # Création de la jauge finale sous forme de barre horizontale
-    final_score = total / (len(inputs) * 100) * 100  # Moyenne des indices de performance
-    st.subheader("Performance globale")
-    st.progress(int(final_score))
+
+    # Création de la jauge finale
+    st.subheader("Performance globale (Jauge colorée)")
+    fig, ax = plt.subplots(figsize=(8, 1))
+
+    # Définir les couleurs et les segments
+    colors = ['#4CAF50', '#2196F3', '#FFC107']  # Vert, Bleu, Jaune
+    left = 0
+    for score, color in zip(normalized_scores, colors):
+        ax.barh(0, score, height=0.5, color=color, left=left)
+        left += score
+
+    # Ajustements visuels
+    ax.set_xlim(0, 100)
+    ax.set_yticks([])
+    ax.set_xticks([0, 25, 50, 75, 100])
+    ax.set_xticklabels(['0%', '25%', '50%', '75%', '100%'])
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+
+    # Afficher la jauge
+    st.pyplot(fig)
