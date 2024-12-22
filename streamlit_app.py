@@ -97,8 +97,13 @@ if all(value > 0 for value in inputs.values()):
     # Définir les couleurs et les segments
     colors = ['#4CAF50', '#2196F3', '#FFC107']  # Vert, Bleu, Jaune
     left = 0
+
+    # Utilisation de `Rectangle` pour créer des barres avec coins arrondis
+    from matplotlib.patches import Rectangle
+    
     for score, color in zip(normalized_scores, colors):
-        ax.barh(0, score, height=0.1, color=color, left=left)
+        ax.add_patch(Rectangle((left, -0.25), score, 0.5, color=color, lw=0, 
+                               joinstyle='round', edgecolor='none'))  # Coins arrondis
         left += score
 
     # Ajustements visuels
