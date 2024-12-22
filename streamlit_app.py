@@ -92,7 +92,7 @@ if all(value > 0 for value in inputs.values()):
 
     # Création de la jauge finale
     st.subheader("Performance globale (Jauge colorée)")
-    fig, ax = plt.subplots(figsize=(8, 1))
+    fig, ax = plt.subplots(figsize=(8, 0.3))
 
     # Définir les couleurs et les segments
     colors = ['#4CAF50', '#2196F3', '#FFC107']  # Vert, Bleu, Jaune
@@ -104,6 +104,7 @@ if all(value > 0 for value in inputs.values()):
     # Ajustements visuels
     ax.set_xlim(0, 100)
     ax.set_yticks([])
+    ax.set_xticks([])
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['left'].set_visible(False)
