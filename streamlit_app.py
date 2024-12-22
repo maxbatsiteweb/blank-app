@@ -4,6 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import re
 
+# Configuration de l'application
+st.set_page_config(page_title="Test de Profilage", layout="wide")
+
 # Appliquer un fond noir à l'application et personnaliser les couleurs du texte
 st.markdown("""
     <style>
@@ -33,8 +36,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Configuration de l'application
-st.set_page_config(page_title="Test de Profilage", layout="wide")
+
 
 # Fonction pour convertir une allure en secondes/km
 def pace_to_seconds(pace):
