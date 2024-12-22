@@ -4,6 +4,35 @@ import numpy as np
 import matplotlib.pyplot as plt
 import re
 
+# Appliquer un fond noir à l'application et personnaliser les couleurs du texte
+st.markdown("""
+    <style>
+        body {
+            background-color: #000000;
+            color: #FFFFFF;
+        }
+        .css-1d391kg {
+            color: #FFFFFF;  /* Change le texte des headers */
+        }
+        .css-1v3fvcr {
+            background-color: #333333; /* Changer la couleur des champs de saisie */
+        }
+        .stButton>button {
+            background-color: #FF5722;  /* Exemple de bouton orange */
+            color: white;
+            border-radius: 8px;
+        }
+        .stTextInput>div>input {
+            background-color: #333333;
+            color: #FFFFFF;
+            border: 1px solid #444444;
+        }
+        .stProgress>div>div {
+            background-color: #00BFAE; /* Change la couleur de la jauge */
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # Configuration de l'application
 st.set_page_config(page_title="Test de Profilage", layout="wide")
 
