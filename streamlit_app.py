@@ -1,6 +1,4 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import re
 
@@ -23,12 +21,12 @@ def calculate_performance_index(real_pace, reference_pace):
     return min(100, round((pace_to_seconds(reference_pace) / real_pace) * 100, 2))
 
 # Fonction pour valider le format MM:SS
-def validate_time_format(time_str):
-    pattern = r'^\d{1,2}:\d{2}$'  # Regex pour "MM:SS" (1 ou 2 chiffres pour MM, exactement 2 chiffres pour SS)
-    if re.match(pattern, time_str):
-        return True
-    else:
-        return False
+def validate_pace_format(pace_str):
+    pattern = r'^\d{1,2}:\d{2}$'  # Regex pour "MM:SS"
+    return bool(re.match(pattern, pace_str))
+
+# Référence fixe
+REFERENCE_PACE = "04:00"  # 4:00 / km
 
 # Titre principal
 st.title("Test de Profilage")
@@ -44,34 +42,27 @@ for i, col in enumerate([col1, col2, col3]):
     with col:
         st.subheader(categories[i])
         
-        # Saisie utilisateur
-        distance = st.number_input(f"Distance ({categories[i]}) en km", min_value=0.0, step=0.01, key=f"distance_{i}")
-        time = st.text_input(f"Temps ({categories[i]}) MM:SS", key=f"time_{i}")
-        ref_pace = st.text_input(f"Allure de Référence ({categories[i]}) MM:SS", key=f"ref_pace_{i}")
-        slope = st.number_input(f"Pente (%) ({categories[i]})", min_value=-20.0, max_value=20.0, step=0.1, key=f"slope_{i}")
+        # Saisie de l'allure
+        real_pace = st.text_input(f"Allure réelle ({categories[i]}) MM:SS / km", key=f"real_pace_{i}")
         
         # Validation et calcul
-        if time and ref_pace:
-            if validate_time_format(time) and validate_time_format(ref_pace):
-                time_seconds = pace_to_seconds(time)  # Convertit le temps en secondes
-                ref_pace_seconds = pace_to_seconds(ref_pace)  # Convertit l'allure de référence en secondes
-                if distance > 0:
-                    real_pace = round(time_seconds / distance)  # Allure réelle
-                    performance_index = calculate_performance_index(real_pace, ref_pace_seconds)  # Calcul indice de performance
+        if real_pace:
+            if validate_pace_format(real_pace):
+                real_pace_seconds = pace_to_seconds(real_pace)  # Convertit l'allure réelle en secondes
+                performance_index = calculate_performance_index(real_pace_seconds, pace_to_seconds(REFERENCE_PACE))  # Calcul indice de performance
+                
+                # Affichage des résultats
+                st.write(f"Allure réelle : {real_pace} / km")
+                st.write(f"Allure de référence : {REFERENCE_PACE} / km")
+                st.write(f"Indice de performance : {performance_index} / 100")
 
-                    # Affichage des résultats
-                    st.write(f"Allure réelle : {seconds_to_pace(real_pace)} / km")
-                    st.write(f"Indice de performance : {performance_index} / 100")
+                # Ajout des résultats dans un dictionnaire pour calculer les graphiques globaux
+                inputs[categories[i]] = performance_index
 
-                    # Ajout des résultats dans un dictionnaire pour calculer les graphiques globaux
-                    inputs[categories[i]] = performance_index
-
-                    # Jauge horizontale individuelle
-                    st.progress(int(performance_index))
-                else:
-                    st.warning("Veuillez entrer une distance supérieure à 0.")
+                # Jauge horizontale individuelle
+                st.progress(int(performance_index))
             else:
-                st.error("Veuillez entrer le temps et l'allure de référence au format MM:SS.")
+                st.error("Veuillez entrer l'allure au format MM:SS.")
                 inputs[categories[i]] = 0
         else:
             st.write("Veuillez remplir tous les champs pour voir les résultats.")
