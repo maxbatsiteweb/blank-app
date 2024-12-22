@@ -1,4 +1,6 @@
 import streamlit as st
+import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import re
 
@@ -21,16 +23,19 @@ def calculate_performance_index(real_pace, reference_pace):
     return min(100, round((pace_to_seconds(reference_pace) / real_pace) * 100, 2))
 
 # Fonction pour valider le format MM:SS
-def validate_pace_format(pace_str):
-    pattern = r'^\d{1,2}:\d{2}$'  # Regex pour "MM:SS"
-    return bool(re.match(pattern, pace_str))
+def validate_time_format(time_str):
+    pattern = r'^\d{1,2}:\d{2}$'  # Regex pour "MM:SS" (1 ou 2 chiffres pour MM, exactement 2 chiffres pour SS)
+    if re.match(pattern, time_str):
+        return True
+    else:
+        return False
 
-# Référence fixe
+# Références
 REFERENCE_PACE = "04:00"  # 4:00 / km
+ADJUSTED_PACE = "05:00"  # Allure ajustée fixe à 5:00 / km
 
 # Titre principal
 st.title("Test de Profilage")
-st.markdown(f"L'allure de référence utilisée pour les calculs est de **{REFERENCE_PACE} / km**.")
 
 # Colonnes pour les trois types de segments
 col1, col2, col3 = st.columns(3)
@@ -43,26 +48,33 @@ for i, col in enumerate([col1, col2, col3]):
     with col:
         st.subheader(categories[i])
         
-        # Saisie de l'allure
-        real_pace = st.text_input(f"Allure réelle ({categories[i]}) MM:SS / km", key=f"real_pace_{i}")
+        # Saisie utilisateur
+        distance = st.number_input(f"Distance ({categories[i]}) en km", min_value=0.0, step=0.01, key=f"distance_{i}")
+        time = st.text_input(f"Temps ({categories[i]}) MM:SS", key=f"time_{i}")
+        slope = st.number_input(f"Pente (%) ({categories[i]})", min_value=-20.0, max_value=20.0, step=0.1, key=f"slope_{i}")
         
         # Validation et calcul
-        if real_pace:
-            if validate_pace_format(real_pace):
-                real_pace_seconds = pace_to_seconds(real_pace)  # Convertit l'allure réelle en secondes
-                performance_index = calculate_performance_index(real_pace_seconds, pace_to_seconds(REFERENCE_PACE))  # Calcul indice de performance
-                
-                # Affichage des résultats
-                st.write(f"Allure réelle : {real_pace} / km")
-                st.write(f"Indice de performance : {performance_index} / 100")
+        if time:
+            if validate_time_format(time):
+                time_seconds = pace_to_seconds(time)  # Convertit le temps en secondes
+                if distance > 0:
+                    real_pace = round(time_seconds / distance)  # Allure réelle
+                    performance_index = calculate_performance_index(real_pace, REFERENCE_PACE)  # Calcul indice de performance
 
-                # Ajout des résultats dans un dictionnaire pour calculer les graphiques globaux
-                inputs[categories[i]] = performance_index
+                    # Affichage des résultats
+                    st.write(f"Allure réelle : {seconds_to_pace(real_pace)} / km")
+                    st.write(f"Allure ajustée à la pente (test) : {ADJUSTED_PACE} / km")
+                    st.write(f"Indice de performance : {performance_index} / 100")
 
-                # Jauge horizontale individuelle
-                st.progress(int(performance_index))
+                    # Ajout des résultats dans un dictionnaire pour calculer les graphiques globaux
+                    inputs[categories[i]] = performance_index
+
+                    # Jauge horizontale individuelle
+                    st.progress(int(performance_index))
+                else:
+                    st.warning("Veuillez entrer une distance supérieure à 0.")
             else:
-                st.error("Veuillez entrer l'allure au format MM:SS.")
+                st.error("Veuillez entrer le temps au format MM:SS.")
                 inputs[categories[i]] = 0
         else:
             st.write("Veuillez remplir tous les champs pour voir les résultats.")
@@ -73,23 +85,31 @@ if all(value > 0 for value in inputs.values()):
     total = sum(inputs.values())
     normalized_scores = [score / total * 100 for score in inputs.values()]
     
+    # Affichage des valeurs par catégorie
+    st.subheader("Répartition des performances")
+    for category, score in zip(categories, normalized_scores):
+        st.write(f"{category} : {round(score, 2)}%")
+
     # Création de la jauge finale
     st.subheader("Performance globale (Jauge colorée)")
-    fig, ax = plt.subplots(figsize=(10, 0.5))
+    fig, ax = plt.subplots(figsize=(8, 1))
 
     # Définir les couleurs et les segments
     colors = ['#4CAF50', '#2196F3', '#FFC107']  # Vert, Bleu, Jaune
     left = 0
-    for score, color, category in zip(normalized_scores, colors, categories):
-        ax.barh(0, score, height=0.2, color=color, left=left, edgecolor='black')
-        # Ajouter du texte dans la jauge
-        ax.text(left + score / 2, 0, f"{category} {round(score, 1)}%", 
-                va='center', ha='center', color='white', fontsize=10, fontweight='bold')
+    for score, color in zip(normalized_scores, colors):
+        ax.barh(0, score, height=0.5, color=color, left=left)
         left += score
 
     # Ajustements visuels
     ax.set_xlim(0, 100)
-    ax.axis('off')  # Supprime tous les axes
+    ax.set_yticks([])
+    ax.set_xticks([0, 25, 50, 75, 100])
+    ax.set_xticklabels(['0%', '25%', '50%', '75%', '100%'])
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
 
     # Afficher la jauge
     st.pyplot(fig)
