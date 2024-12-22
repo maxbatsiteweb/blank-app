@@ -22,10 +22,6 @@ def seconds_to_pace(seconds):
 def calculate_performance_index(real_pace, reference_pace):
     return min(100, round((pace_to_seconds(reference_pace) / real_pace) * 100, 2))
 
-# Fonction pour ajuster l'allure en fonction de la pente
-def adjust_pace_for_slope(real_pace, slope_adjustment):
-    return pace_to_seconds(real_pace) + slope_adjustment
-
 # Fonction pour valider le format MM:SS
 def validate_time_format(time_str):
     pattern = r'^\d{1,2}:\d{2}$'  # Regex pour "MM:SS" (1 ou 2 chiffres pour MM, exactement 2 chiffres pour SS)
@@ -36,7 +32,7 @@ def validate_time_format(time_str):
 
 # Références
 REFERENCE_PACE = "04:00"  # 4:00 / km
-DEFAULT_ADJUSTED_PACE = pace_to_seconds("04:30")  # 4:30 / km
+ADJUSTED_PACE = "05:00"  # Allure ajustée fixe à 5:00 / km
 
 # Titre principal
 st.title("Test de Profilage")
@@ -63,12 +59,11 @@ for i, col in enumerate([col1, col2, col3]):
                 time_seconds = pace_to_seconds(time)  # Convertit le temps en secondes
                 if distance > 0:
                     real_pace = round(time_seconds / distance)  # Allure réelle
-                    adjusted_pace = adjust_pace_for_slope(real_pace, slope * 2)  # Ajustement avec pente
                     performance_index = calculate_performance_index(real_pace, REFERENCE_PACE)  # Calcul indice de performance
 
                     # Affichage des résultats
                     st.write(f"Allure réelle : {seconds_to_pace(real_pace)} / km")
-                    st.write(f"Allure ajustée à la pente : {seconds_to_pace(adjusted_pace)} / km")
+                    st.write(f"Allure ajustée à la pente (test) : {ADJUSTED_PACE} / km")
                     st.write(f"Indice de performance : {performance_index} / 100")
 
                     # Ajout des résultats dans un dictionnaire pour calculer les graphiques globaux
