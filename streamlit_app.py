@@ -30,6 +30,7 @@ REFERENCE_PACE = "04:00"  # 4:00 / km
 
 # Titre principal
 st.title("Test de Profilage")
+st.markdown(f"L'allure de référence utilisée pour les calculs est de **{REFERENCE_PACE} / km**.")
 
 # Colonnes pour les trois types de segments
 col1, col2, col3 = st.columns(3)
@@ -53,7 +54,6 @@ for i, col in enumerate([col1, col2, col3]):
                 
                 # Affichage des résultats
                 st.write(f"Allure réelle : {real_pace} / km")
-                st.write(f"Allure de référence : {REFERENCE_PACE} / km")
                 st.write(f"Indice de performance : {performance_index} / 100")
 
                 # Ajout des résultats dans un dictionnaire pour calculer les graphiques globaux
