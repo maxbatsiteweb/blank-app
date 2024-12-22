@@ -30,10 +30,6 @@ def validate_time_format(time_str):
     else:
         return False
 
-# Références
-REFERENCE_PACE = "04:00"  # 4:00 / km
-ADJUSTED_PACE = "05:00"  # Allure ajustée fixe à 5:00 / km
-
 # Titre principal
 st.title("Test de Profilage")
 
@@ -51,19 +47,20 @@ for i, col in enumerate([col1, col2, col3]):
         # Saisie utilisateur
         distance = st.number_input(f"Distance ({categories[i]}) en km", min_value=0.0, step=0.01, key=f"distance_{i}")
         time = st.text_input(f"Temps ({categories[i]}) MM:SS", key=f"time_{i}")
+        ref_pace = st.text_input(f"Allure de Référence ({categories[i]}) MM:SS", key=f"ref_pace_{i}")
         slope = st.number_input(f"Pente (%) ({categories[i]})", min_value=-20.0, max_value=20.0, step=0.1, key=f"slope_{i}")
         
         # Validation et calcul
-        if time:
-            if validate_time_format(time):
+        if time and ref_pace:
+            if validate_time_format(time) and validate_time_format(ref_pace):
                 time_seconds = pace_to_seconds(time)  # Convertit le temps en secondes
+                ref_pace_seconds = pace_to_seconds(ref_pace)  # Convertit l'allure de référence en secondes
                 if distance > 0:
                     real_pace = round(time_seconds / distance)  # Allure réelle
-                    performance_index = calculate_performance_index(real_pace, REFERENCE_PACE)  # Calcul indice de performance
+                    performance_index = calculate_performance_index(real_pace, ref_pace_seconds)  # Calcul indice de performance
 
                     # Affichage des résultats
                     st.write(f"Allure réelle : {seconds_to_pace(real_pace)} / km")
-                    st.write(f"Allure ajustée à la pente (test) : {ADJUSTED_PACE} / km")
                     st.write(f"Indice de performance : {performance_index} / 100")
 
                     # Ajout des résultats dans un dictionnaire pour calculer les graphiques globaux
@@ -74,7 +71,7 @@ for i, col in enumerate([col1, col2, col3]):
                 else:
                     st.warning("Veuillez entrer une distance supérieure à 0.")
             else:
-                st.error("Veuillez entrer le temps au format MM:SS.")
+                st.error("Veuillez entrer le temps et l'allure de référence au format MM:SS.")
                 inputs[categories[i]] = 0
         else:
             st.write("Veuillez remplir tous les champs pour voir les résultats.")
@@ -85,31 +82,23 @@ if all(value > 0 for value in inputs.values()):
     total = sum(inputs.values())
     normalized_scores = [score / total * 100 for score in inputs.values()]
     
-    # Affichage des valeurs par catégorie
-    st.subheader("Répartition des performances")
-    for category, score in zip(categories, normalized_scores):
-        st.write(f"{category} : {round(score, 2)}%")
-
     # Création de la jauge finale
     st.subheader("Performance globale (Jauge colorée)")
-    fig, ax = plt.subplots(figsize=(8, 1))
+    fig, ax = plt.subplots(figsize=(10, 0.5))
 
     # Définir les couleurs et les segments
     colors = ['#4CAF50', '#2196F3', '#FFC107']  # Vert, Bleu, Jaune
     left = 0
-    for score, color in zip(normalized_scores, colors):
-        ax.barh(0, score, height=0.5, color=color, left=left)
+    for score, color, category in zip(normalized_scores, colors, categories):
+        ax.barh(0, score, height=0.2, color=color, left=left, edgecolor='black')
+        # Ajouter du texte dans la jauge
+        ax.text(left + score / 2, 0, f"{category} {round(score, 1)}%", 
+                va='center', ha='center', color='white', fontsize=10, fontweight='bold')
         left += score
 
     # Ajustements visuels
     ax.set_xlim(0, 100)
-    ax.set_yticks([])
-    ax.set_xticks([0, 25, 50, 75, 100])
-    ax.set_xticklabels(['0%', '25%', '50%', '75%', '100%'])
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_visible(False)
-    ax.spines['bottom'].set_visible(False)
+    ax.axis('off')  # Supprime tous les axes
 
     # Afficher la jauge
     st.pyplot(fig)
